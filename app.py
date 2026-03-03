@@ -6,62 +6,21 @@ st.set_page_config(page_title="BetSafe", page_icon="🛡️", layout="wide")
 st.title("🛡️ BetSafe")
 st.caption("Automated downside protection for event markets.")
 
-# Safety banner
-st.warning("Demo mode recommended: DRY_RUN= False, ARM_LIVE=True")
+mode = "LIVE" if os.getenv("ARM_LIVE", "false").lower() in ("true","1","yes") and os.getenv("DRY_RUN","true").lower() in ("false","0","no") else "DRY RUN"
+st.warning(f"Demo mode recommended: DRY_RUN={os.getenv('DRY_RUN','(not set)')}, ARM_LIVE={os.getenv('ARM_LIVE','(not set)')}")
 
-# Controls
-col1, col2, col3 = st.columns(3)
-with col1:
-    ticker = st.text_input("Ticker", value=bot.TICKER)
-with col2:
-    poll = st.number_input("Poll seconds", min_value=1, max_value=10, value=int(bot.POLL_SECONDS))
-with col3:
-    st.write("")
+st.subheader("Settings")
+ticker = st.text_input("Ticker", value=os.getenv("TICKER", ""))
+budget = st.number_input("Budget USD", min_value=0.01, value=float(os.getenv("BUDGET_USD","1.0")))
+poll = st.number_input("Poll seconds", min_value=1, max_value=10, value=int(os.getenv("POLL_SECONDS","2")))
 
-# Apply quick config changes (no refactor needed)
-bot.TICKER = ticker
-bot.POLL_SECONDS = int(poll)
+st.subheader("Current status")
+c1, c2, c3 = st.columns(3)
+c1.metric("Mode", mode)
+c2.metric("Ticker (env)", os.getenv("TICKER","(not set)"))
+c3.metric("Budget (env)", os.getenv("BUDGET_USD","(not set)"))
 
-if "stop_event" not in st.session_state:
-    st.session_state.stop_event = threading.Event()
-if "log_q" not in st.session_state:
-    st.session_state.log_q = Queue()
-if "thread" not in st.session_state:
-    st.session_state.thread = None
-
-c1, c2 = st.columns(2)
-with c1:
-    if st.button("▶️ Start"):
-        if st.session_state.thread is None or not st.session_state.thread.is_alive():
-            st.session_state.stop_event.clear()
-            st.session_state.thread = threading.Thread(
-                target=bot.run_bot,
-                args=(st.session_state.stop_event, st.session_state.log_q),
-                daemon=True,
-            )
-            st.session_state.thread.start()
-
-with c2:
-    if st.button("⏹ Stop"):
-        st.session_state.stop_event.set()
-
-st.subheader("Live Logs")
-log_box = st.empty()
-
-# Pull logs
-logs = []
-try:
-    while True:
-        logs.append(st.session_state.log_q.get_nowait())
-except Empty:
-    pass
-
-if "all_logs" not in st.session_state:
-    st.session_state.all_logs = []
-
-st.session_state.all_logs.extend(logs)
-st.session_state.all_logs = st.session_state.all_logs[-300:]  # keep last 300 lines
-
-log_box.code("\n".join(st.session_state.all_logs) if st.session_state.all_logs else "No logs yet...")
-
-st.caption("If the page looks frozen, press Stop, refresh, then Start again.")
+st.info(
+    "This website is a dashboard. Your live trading bot should run as a separate Render Background Worker.\n\n"
+    "To change live settings, update your Render Environment Variables (TICKER, BUDGET_USD, etc.) and redeploy the worker."
+)
