@@ -1,15 +1,13 @@
-import threading
-from queue import Queue, Empty
+import os
 import streamlit as st
 
-import bot  # your bot.py file
+st.set_page_config(page_title="BetSafe", page_icon="🛡️", layout="wide")
 
-st.set_page_config(page_title="Risk Guard", layout="wide")
-
-st.title("Risk Guard (Demo)")
+st.title("🛡️ BetSafe")
+st.caption("Automated downside protection for event markets.")
 
 # Safety banner
-st.warning("Demo mode recommended: DRY_RUN=True, ARM_LIVE=False")
+st.warning("Demo mode recommended: DRY_RUN= False, ARM_LIVE=True")
 
 # Controls
 col1, col2, col3 = st.columns(3)
