@@ -1,7 +1,7 @@
 import os
 import requests
 
-BASE_URL = "https://trading-api.kalshi.com/trade-api/v2"
+BASE_URL = "https://api.elections.kalshi.com"
 
 API_KEY = os.environ.get("KALSHI_API_KEY")
 API_SECRET = os.environ.get("KALSHI_API_SECRET")
